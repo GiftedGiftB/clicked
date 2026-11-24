@@ -2,17 +2,29 @@
 
 import { MessageSearch } from '@/components/search/MessageSearch';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getMessageCount } from '@/lib/search/db';
 
 export default function SearchPage() {
   const [count, setCount] = useState<number | null>(null);
 
-  useState(() => {
+  useEffect(() => {
+    let isMounted = true;
+
     getMessageCount()
-      .then(setCount)
-      .catch(() => {});
-  });
+      .then((messageCount) => {
+        if (isMounted) {
+          setCount(messageCount);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load indexed message count.', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="max-w-3xl mx-auto p-6 md:p-10">
